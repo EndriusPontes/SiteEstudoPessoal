@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizador de Missões</title>
+    <title>Site de Organização Pessoal</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -14,18 +14,18 @@
 
     <div class="app-wrapper">
         <aside class="sidebar">
-            <button class="btn-sidebar-custom" onclick="openHistoryModal()">📜 HISTÓRICO DE MISSÕES</button>
+            <button class="btn-sidebar-custom" onclick="openHistoryModal()">📜 MEMORIAIS DE GUERRA</button>
 
             <div class="profile-highlight-box">
                 <div class="avatar-container" onclick="document.getElementById('file-input').click()">
-                    <img src="https://via.placeholder.com/80" id="profile-img">
+                    <img src="https://i.postimg.cc/8PzS6mZ8/pinguim.png" id="profile-img" alt="Avatar">
                     <input type="file" id="file-input" hidden accept="image/*" onchange="loadPhoto(event)">
                 </div>
                 <div class="profile-info">
                     <h3 contenteditable="true" id="user-name" oninput="salvarDados()" class="editable-name">GUERREIRO(A) ✎</h3>
                     <div class="stats-row">
                         <div class="gold-display">💰 <span id="gold-count">0</span></div>
-                        <div class="lvl-display">NÍVEL <span id="lvl-current">1</span>/250</div>
+                        <div class="lvl-display">LVL <span id="lvl-current">1</span>/250</div>
                     </div>
                     <div class="xp-bar-bg"><div id="xp-fill" class="xp-fill"></div></div>
                     <small id="xp-text">0/100 XP</small>
@@ -34,13 +34,12 @@
 
             <div class="exams-box">
                 <h4>📅 PROVAS & TRABALHOS</h4>
-                <div class="task-input-row">
-                    <textarea id="exam-in" class="custom-textarea-task transparent-bg" placeholder="Nova prova..."></textarea>
-                    <button onclick="addExam()" class="btn-plus-custom">+</button>
+                <div class="exam-inputs">
+                    <input type="text" id="exam-name-in" class="transparent-bg custom-input" placeholder="Nome da prova...">
+                    <input type="date" id="exam-date-in" class="transparent-bg custom-input">
+                    <button onclick="addExam()" class="btn-sidebar-custom" style="margin-top: 5px;">ADICIONAR PRAZO</button>
                 </div>
-                <div class="list-scroll-sidebar">
-                    <ul id="exam-list" class="custom-list"></ul>
-                </div>
+                <ul id="exam-list" class="custom-list"></ul>
             </div>
         </aside>
 
@@ -49,7 +48,7 @@
                 <div class="mission-trigger-area">
                     <button class="btn-sidebar-custom mission-btn" onclick="openMissionModal()">⚔️ MISSÕES DISPONÍVEIS</button>
                 </div>
-                <h2 contenteditable="true" id="main-title-text" oninput="salvarDados()" class="main-title">NOMEIE A SUA MISSÃO</h2>
+                <h2 contenteditable="true" id="main-title-text" oninput="salvarDados()" class="main-title">PAINEL DE CONTROLE ✎</h2>
             </header>
 
             <div class="workspace-grid">
@@ -71,13 +70,14 @@
 
                 <section class="notes-area blue-faint">
                     <div class="notes-header">
+                        <div class="notes-title-label">📝 BLOCO DE NOTAS</div>
                         <div class="notes-toolbar">
                             <button onclick="execCmd('bold')"><b>B</b></button>
                             <button onclick="execCmd('italic')"><i>I</i></button>
                             <button onclick="execCmd('underline')"><u>U</u></button>
                             <button onclick="execCmd('insertUnorderedList')">• Lista</button>
                             <div class="separator"></div>
-                            <button onclick="addNewNote()" class="btn-add-note">+ Novo Bloco</button>
+                            <button onclick="addNewNote()" class="btn-add-note">+ Nova Nota</button>
                         </div>
                         <div id="notes-tabs" class="notes-tabs"></div>
                     </div>
@@ -88,11 +88,9 @@
     </div>
 
     <div id="cropper-modal" class="modal-overlay">
-        <div class="modal-card cropper-card">
+        <div class="modal-card">
             <h3>✂️ AJUSTAR AVATAR</h3>
-            <div class="cropper-wrapper">
-                <img id="image-to-crop">
-            </div>
+            <div class="cropper-wrapper"><img id="image-to-crop" src=""></div>
             <div class="modal-actions">
                 <button class="btn-rpg-gold" onclick="confirmCrop()">SALVAR FOTO</button>
                 <button class="btn-cancel" onclick="closeCropper()">CANCELAR</button>
@@ -110,7 +108,7 @@
 
     <div id="history-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3>📜 HISTÓRICO DE MISSÕES</h3>
+            <h3>📜 MEMORIAIS DE GUERRA</h3>
             <ul id="history-content" class="custom-scroll-list"></ul>
             <button class="btn-rpg-gold" onclick="closeHistoryModal()">FECHAR</button>
         </div>

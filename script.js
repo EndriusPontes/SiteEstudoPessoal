@@ -24,7 +24,7 @@ function renderTabs() {
         const div = document.createElement('div');
         div.className = `tab ${nota.id === notaAtivaId ? 'active' : ''}`;
         div.innerHTML = `<span onclick="switchNote(${nota.id})">${nota.titulo}</span> 
-                         <span onclick="deleteNote(${nota.id})" style="color:red; cursor:pointer">✖</span>`;
+                         <span onclick="deleteNote(${nota.id})" style="color:#ff5555; cursor:pointer;">×</span>`;
         container.appendChild(div);
     });
 }
@@ -55,7 +55,7 @@ function deleteNote(id) {
     switchNote(notaAtivaId);
 }
 
-// --- FOTO DE PERFIL (CROPPER) ---
+// --- FOTO (CROPPER) ---
 function loadPhoto(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -76,42 +76,48 @@ function confirmCrop() {
 
 function closeCropper() {
     document.getElementById('cropper-modal').style.display = 'none';
-    document.getElementById('file-input').value = "";
     if (cropper) cropper.destroy();
     salvarDados();
 }
 
-// --- MISSÕES E RPG ---
-function openMissionModal() {
-    const box = document.getElementById('missions-pool'); box.innerHTML = "";
-    if (missoesConcluidasHoje >= 3) { box.innerHTML = "<p>Missões concluídas por hoje!</p>"; }
-    else {
-        missoesDoDia.forEach((m, i) => {
-            const d = document.createElement('div'); d.style = "border:1px solid #333; padding:10px; margin-bottom:10px;";
-            d.innerHTML = `<strong>⚔️ ${m.t}</strong><p style="font-size:12px">${m.d}</p>
-                           <button onclick="acceptMission(${i})" class="btn-sidebar-custom" style="padding:5px">ACEITAR</button>`;
-            box.appendChild(d);
-        });
+// --- PROVAS & ALERTAS ---
+function addExam() {
+    const nameIn = document.getElementById('exam-name-in');
+    const dateIn = document.getElementById('exam-date-in');
+    
+    if(nameIn.value.trim() && dateIn.value) {
+        const li = document.createElement('li');
+        // Armazenamos a data bruta no atributo data-date para verificação
+        li.setAttribute('data-date', dateIn.value);
+        li.innerHTML = `<span><strong>${nameIn.value}</strong> - ${dateIn.value}</span>
+                        <button onclick="this.parentElement.remove();salvarDados();" style="color:red;background:none;border:none;cursor:pointer">❌</button>`;
+        document.getElementById('exam-list').appendChild(li);
+        
+        nameIn.value = "";
+        dateIn.value = "";
+        salvarDados();
     }
-    document.getElementById('mission-modal').style.display = 'flex';
 }
 
-function acceptMission(idx) {
-    addTaskToUI(missoesDoDia[idx].t, 'todo-list', true);
-    missoesDoDia.splice(idx, 1);
-    closeMissionModal();
+function checkExams() {
+    const hoje = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    const provas = document.querySelectorAll('#exam-list li');
+    
+    provas.forEach(prova => {
+        const dataProva = prova.getAttribute('data-date');
+        const nomeProva = prova.querySelector('strong').innerText;
+        
+        // Se a data da prova for hoje e ainda não alertamos nesta sessão
+        if(dataProva === hoje) {
+            alert(`📢 ALERTA DE PROVA: ${nomeProva} é HOJE!`);
+        }
+    });
 }
 
-function finishTask(btn, txt, isFromPool) {
-    btn.parentElement.parentElement.remove();
-    addTaskToUI(txt, 'done-list', false);
-    addXP(50); goldCount += 10;
-    if(isFromPool) missoesConcluidasHoje++;
-    memorials.push({n: txt, d: new Date().toLocaleDateString()});
-    updateUI();
-}
+// Verifica provas a cada 60 segundos
+setInterval(checkExams, 60000);
 
-// --- UTILITÁRIOS ---
+// --- RPG E SISTEMAS GERAIS ---
 function addXP(v) { 
     xpAtual += v; 
     while(xpAtual >= xpNecessario) { xpAtual -= xpNecessario; nivel++; xpNecessario = Math.floor(100 * Math.pow(1.18, nivel-1)); alert("LEVEL UP!"); } 
@@ -128,35 +134,49 @@ function updateUI() {
 
 function addTask() {
     const i = document.getElementById('task-in');
-    if(i.value) { addTaskToUI(i.value, 'todo-list', false); i.value=""; }
-}
-
-function addExam() {
-    const i = document.getElementById('exam-in');
-    if(i.value) {
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${i.value}</span><button onclick="this.parentElement.remove();salvarDados();">❌</button>`;
-        document.getElementById('exam-list').appendChild(li); i.value=""; salvarDados();
-    }
+    if(i.value.trim()) { addTaskToUI(i.value, 'todo-list', false); i.value=""; }
 }
 
 function addTaskToUI(txt, listId, isFromPool) {
     const li = document.createElement('li');
     li.innerHTML = `<span>${txt}</span><div>
-        ${listId === 'todo-list' ? `<button onclick="finishTask(this,'${txt}',${isFromPool})" style="color:green;background:none;border:none;cursor:pointer">✔️</button>` : ''}
-        <button onclick="this.parentElement.parentElement.remove();salvarDados();" style="color:red;background:none;border:none;cursor:pointer">❌</button></div>`;
+        ${listId === 'todo-list' ? `<button onclick="finishTask(this,'${txt}',${isFromPool})" style="color:green;background:none;border:none;cursor:pointer;">✔️</button>` : ''}
+        <button onclick="this.parentElement.parentElement.remove();salvarDados();" style="color:red;background:none;border:none;cursor:pointer;">❌</button></div>`;
     document.getElementById(listId).appendChild(li); salvarDados();
 }
 
-function openHistoryModal() {
-    const c = document.getElementById('history-content');
-    c.innerHTML = memorials.map(m => `<li>${m.n} (${m.d})</li>`).join("") || "Vazio";
-    document.getElementById('history-modal').style.display = 'flex';
+function finishTask(btn, txt, isFromPool) {
+    btn.parentElement.parentElement.remove();
+    addTaskToUI(txt, 'done-list', false);
+    addXP(50); goldCount += 10;
+    if(isFromPool) missoesConcluidasHoje++;
+    memorials.push({n: txt, d: new Date().toLocaleDateString()});
+    updateUI();
 }
 
-function closeMissionModal() { document.getElementById('mission-modal').style.display='none'; }
-function closeHistoryModal() { document.getElementById('history-modal').style.display='none'; }
+// --- MISSÕES ---
+function openMissionModal() {
+    const box = document.getElementById('missions-pool'); box.innerHTML = "";
+    if (missoesConcluidasHoje >= 3) { box.innerHTML = "<p style='color:gold;'>Meta diária batida!</p>"; }
+    else {
+        missoesDoDia.forEach((m, i) => {
+            const d = document.createElement('div');
+            d.style = "border:1px solid #333; padding:10px; margin-bottom:10px; text-align:left;";
+            d.innerHTML = `<strong>⚔️ ${m.t}</strong><p style="font-size:12px; color:#aaa;">${m.d}</p>
+                           <button onclick="acceptMission(${i})" class="btn-sidebar-custom" style="padding:5px; width:auto;">ACEITAR</button>`;
+            box.appendChild(d);
+        });
+    }
+    document.getElementById('mission-modal').style.display = 'flex';
+}
 
+function acceptMission(idx) {
+    addTaskToUI(missoesDoDia[idx].t, 'todo-list', true);
+    missoesDoDia.splice(idx, 1);
+    closeMissionModal();
+}
+
+// --- SAVE & LOAD ---
 function salvarDados() {
     const data = {
         nivel, xpAtual, xpNecessario, goldCount, memorials, missoesConcluidasHoje, notas, notaAtivaId,
@@ -167,11 +187,11 @@ function salvarDados() {
         done: document.getElementById('done-list').innerHTML,
         foto: document.getElementById('profile-img').src
     };
-    localStorage.setItem('grimorio_master_save', JSON.stringify(data));
+    localStorage.setItem('grimorio_save_master_v5', JSON.stringify(data));
 }
 
 function carregarDados() {
-    const s = localStorage.getItem('grimorio_master_save');
+    const s = localStorage.getItem('grimorio_save_master_v5');
     if(s) {
         const d = JSON.parse(s);
         nivel = d.nivel; xpAtual = d.xpAtual; xpNecessario = d.xpNecessario; goldCount = d.goldCount;
@@ -182,10 +202,22 @@ function carregarDados() {
         document.getElementById('exam-list').innerHTML = d.exam;
         document.getElementById('todo-list').innerHTML = d.todo;
         document.getElementById('done-list').innerHTML = d.done;
-        document.getElementById('profile-img').src = d.foto;
+        document.getElementById('profile-img').src = d.foto || "https://i.postimg.cc/8PzS6mZ8/pinguim.png";
         switchNote(notaAtivaId);
         updateUI();
-    } else { renderTabs(); }
+        checkExams(); // Verifica logo ao carregar o site
+    } else {
+        document.getElementById('profile-img').src = "https://i.postimg.cc/8PzS6mZ8/pinguim.png";
+        renderTabs();
+    }
 }
+
+function openHistoryModal() {
+    const c = document.getElementById('history-content');
+    c.innerHTML = memorials.map(m => `<li>${m.n} (${m.d})</li>`).join("") || "Vazio";
+    document.getElementById('history-modal').style.display = 'flex';
+}
+function closeMissionModal() { document.getElementById('mission-modal').style.display='none'; }
+function closeHistoryModal() { document.getElementById('history-modal').style.display='none'; }
 
 window.onload = carregarDados;

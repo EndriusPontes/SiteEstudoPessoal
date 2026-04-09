@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grimório de Engenharia - Missões Reais</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <button class="btn-sidebar-custom" onclick="openHistoryModal()">
+                <span>📜 MEMORIAIS DE GUERRA</span>
+            </button>
+
+            <div class="profile-highlight-box">
+                <div class="avatar-container" onclick="document.getElementById('file-input').click()">
+                    <img src="https://via.placeholder.com/80" id="profile-img">
+                    <input type="file" id="file-input" hidden accept="image/*" onchange="loadPhoto(event)">
+                </div>
+                <div class="profile-info">
+                    <h3 contenteditable="true" id="user-name" oninput="salvarDados()" class="editable-name">GUERREIRO(A) ✎</h3>
+                    <div class="stats-row">
+                        <div class="gold-display">💰 <span id="gold-count">0</span></div>
+                        <div class="lvl-display">LVL <span id="lvl-current">1</span>/250</div>
+                    </div>
+                    <div class="xp-bar-bg"><div id="xp-fill" class="xp-fill"></div></div>
+                    <small id="xp-text">0/100 XP</small>
+                </div>
+            </div>
+
+            <div class="exams-box">
+                <h4>📅 PROVAS & TRABALHOS</h4>
+                <div class="task-input-row">
+                    <textarea id="exam-in" class="custom-textarea-task transparent-bg" placeholder="Nova prova..."></textarea>
+                    <button onclick="addExam()" class="btn-plus-custom">+</button>
+                </div>
+                <div class="list-scroll-sidebar">
+                    <ul id="exam-list" class="custom-list"></ul>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="board-header">
+                <div class="mission-trigger-area">
+                    <button class="btn-sidebar-custom mission-btn" onclick="openMissionModal()">
+                        <span>⚔️ MISSÕES DISPONÍVEIS</span>
+                    </button>
+                </div>
+                <h2 contenteditable="true" id="main-title-text" oninput="salvarDados()" class="main-title">PAINEL DE CONTROLE ✎</h2>
+            </header>
+
+            <div class="workspace-grid">
+                <div class="kanban-row">
+                    <div class="kanban-col red-faint">
+                        <div class="col-header">⚔️ A FAZER</div>
+                        <div class="task-input-row">
+                            <textarea id="task-in" class="custom-textarea-task transparent-bg" placeholder="Nova missão..."></textarea>
+                            <button onclick="addTask()" class="btn-plus-custom">+</button>
+                        </div>
+                        <div class="list-scroll-main">
+                            <ul id="todo-list" class="custom-list"></ul>
+                        </div>
+                    </div>
+
+                    <div class="kanban-col green-faint">
+                        <div class="col-header">✔️ CONCLUÍDO</div>
+                        <div class="list-scroll-main">
+                            <ul id="done-list" class="custom-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="notes-area blue-faint">
+                    <div class="col-header">📝 BLOCO DE NOTAS</div>
+                    <textarea id="main-notes" oninput="salvarDados()" class="custom-textarea-main transparent-bg" placeholder="Relate seus códigos e estudos..."></textarea>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="cropper-modal" class="modal-overlay">
+        <div class="modal-card cropper-card">
+            <h3>✂️ AJUSTAR AVATAR</h3>
+            <div class="cropper-wrapper"><img id="image-to-crop"></div>
+            <div class="modal-actions">
+                <button class="btn-rpg-gold" onclick="confirmCrop()">SALVAR FOTO</button>
+                <button class="btn-sidebar-custom" onclick="closeCropper()" style="background:#441111; margin-top:10px;">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mission-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="modal-title">⚔️ MISSÕES DISPONÍVEIS</h3>
+            <div id="missions-pool" class="custom-scroll-list"></div>
+            <button class="btn-rpg-gold" onclick="closeMissionModal()">FECHAR QUADRO</button>
+        </div>
+    </div>
+
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="modal-title">📜 MEMORIAIS DE GUERRA</h3>
+            <div id="history-content" class="custom-scroll-list"></div>
+            <button class="btn-rpg-gold" onclick="closeHistoryModal()">FECHAR MEMÓRIAS</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,152 +1,69 @@
 let nivel = 1, xpAtual = 0, xpNecessario = 100, goldCount = 0;
 let memorials = [], missoesConcluidasHoje = 0;
-const LIMITE_MISSOES = 3;
 let cropper;
 
-// TEXTOS DAS MISSÕES QUE VOCÊ PEDIU
+// NOTAS
+let notas = [{ id: Date.now(), titulo: "Nota 1", conteudo: "" }];
+let notaAtivaId = notas[0].id;
+
 const poolDeMissoes = [
     { t: "Fazer AVA", d: "Faça os AVAS que estão disponíveis no site, você receberá uma recompensa de 50 de exp" },
     { t: "Estudar Logica Computacional", d: "Adquire os conhecimentos sobre logica computacional, você receberá uma recompensa de 50 de exp" },
     { t: "Algoritmos e Estruturas", d: "Adquire os conhecimentos sobre os Algoritimos e Estruturas de Dados, você receberá uma recompensa de 50 de exp" },
-    { t: "Estudar Banco de Dados", d: "Adquire os conhecimentos sobre os Bancos de Dados, você receberá uma recompensa de 50 de exp" },
-    { t: "Redes de Computadores", d: "Adquire os conhecimentos sobre Redes de Computadores, você receberá uma recompensa de 50 de exp" },
-    { t: "Programação Web", d: "Estude Fundamentos de Programação para a Internet, você receberá uma recompensa de 50 de exp" },
-    { t: "Sistemas Operacionais", d: "Adquire os conhecimentos sobre Sistemas Operacionais, você receberá uma recompensa de 50 de exp" },
-    { t: "Cultura e Sociedade", d: "Estude Cultura e Sociedade, você receberá uma recompensa de 50 de exp" },
-    { t: "Comunicação e Expressão", d: "Estude Comunicação e Expressão, você receberá uma recompensa de 50 de exp" },
-    { t: "Arquitetura de Computadores", d: "Estude Arquitetura e Organização de Computadores, você receberá uma recompensa de 50 de exp" }
+    { t: "Estudar Banco de Dados", d: "Adquire os conhecimentos sobre os Bancos de Dados, você receberá uma recompensa de 50 de exp" }
 ];
-
-// Sorteia as missões do dia
 let missoesDoDia = [...poolDeMissoes].sort(() => 0.5 - Math.random()).slice(0, 3);
 
-// --- SALVAMENTO ---
-function salvarDados() {
-    const backup = {
-        nivel, xpAtual, xpNecessario, goldCount, memorials, missoesConcluidasHoje,
-        nomeUsuario: document.getElementById('user-name').innerText,
-        tituloPainel: document.getElementById('main-title-text').innerText,
-        blocoNotas: document.getElementById('main-notes').value,
-        listaProvas: document.getElementById('exam-list').innerHTML,
-        listaAFazer: document.getElementById('todo-list').innerHTML,
-        listaConcluido: document.getElementById('done-list').innerHTML,
-        fotoPerfil: document.getElementById('profile-img').src
-    };
-    localStorage.setItem('grimorio_save_v3', JSON.stringify(backup));
+// --- BLOCO DE NOTAS ---
+function execCmd(cmd) { document.execCommand(cmd, false, null); }
+
+function renderTabs() {
+    const container = document.getElementById('notes-tabs');
+    container.innerHTML = "";
+    notas.forEach(nota => {
+        const div = document.createElement('div');
+        div.className = `tab ${nota.id === notaAtivaId ? 'active' : ''}`;
+        div.innerHTML = `<span onclick="switchNote(${nota.id})">${nota.titulo}</span> 
+                         <span onclick="deleteNote(${nota.id})" style="color:red; cursor:pointer">✖</span>`;
+        container.appendChild(div);
+    });
 }
 
-function carregarDados() {
-    const salvo = localStorage.getItem('grimorio_save_v3');
-    if (salvo) {
-        const d = JSON.parse(salvo);
-        nivel = d.nivel; xpAtual = d.xpAtual; xpNecessario = d.xpNecessario; goldCount = d.goldCount;
-        memorials = d.memorials || []; missoesConcluidasHoje = d.missoesConcluidasHoje || 0;
-        document.getElementById('user-name').innerText = d.nomeUsuario;
-        document.getElementById('main-title-text').innerText = d.tituloPainel;
-        document.getElementById('main-notes').value = d.blocoNotas;
-        document.getElementById('exam-list').innerHTML = d.listaProvas;
-        document.getElementById('todo-list').innerHTML = d.listaAFazer;
-        document.getElementById('done-list').innerHTML = d.listaConcluido;
-        document.getElementById('profile-img').src = d.fotoPerfil;
-        updateUI();
-    }
+function addNewNote() {
+    const nova = { id: Date.now(), titulo: "Nota " + (notas.length + 1), conteudo: "" };
+    notas.push(nova);
+    switchNote(nova.id);
 }
 
-// --- RPG E UI ---
-function addXP(valor) {
-    if (nivel >= 250) return;
-    xpAtual += valor;
-    while (xpAtual >= xpNecessario && nivel < 250) {
-        xpAtual -= xpNecessario;
-        nivel++;
-        xpNecessario = Math.floor(100 * Math.pow(1.18, nivel - 1));
-        alert(`LEVEL UP! Nível ${nivel}`);
-    }
-    updateUI();
-}
-
-function updateUI() {
-    const percent = (xpAtual / xpNecessario) * 100;
-    document.getElementById('xp-fill').style.width = percent + "%";
-    document.getElementById('xp-text').innerText = `${xpAtual}/${xpNecessario} XP`;
-    document.getElementById('lvl-current').innerText = nivel;
-    document.getElementById('gold-count').innerText = goldCount;
+function switchNote(id) {
+    notaAtivaId = id;
+    const nota = notas.find(n => n.id === id);
+    document.getElementById('note-editor').innerHTML = nota.conteudo;
+    renderTabs();
     salvarDados();
 }
 
-// --- MISSÕES DISPONÍVEIS ---
-function openMissionModal() {
-    const box = document.getElementById('missions-pool');
-    box.innerHTML = "";
-    if (missoesConcluidasHoje >= LIMITE_MISSOES) {
-        box.innerHTML = `<h3 style="color: gold; margin-top:20px">Você fez todas as missões de hoje!</h3>`;
-    } else {
-        missoesDoDia.forEach((m, i) => {
-            const div = document.createElement('div');
-            div.style = "border:1px solid #333; padding:12px; margin-bottom:10px; text-align:left; background: rgba(255,255,255,0.02);";
-            div.innerHTML = `<strong>⚔️ ${m.t}</strong><p style="font-size:12px; color:#aaa; margin:5px 0;">${m.d}</p>
-                             <button class="btn-sidebar-custom" style="padding:5px; width:auto; font-size:11px;" onclick="acceptMission(${i})">ACEITAR</button>`;
-            box.appendChild(div);
-        });
-    }
-    document.getElementById('mission-modal').style.display = 'flex';
+function updateCurrentNote() {
+    const nota = notas.find(n => n.id === notaAtivaId);
+    if (nota) { nota.conteudo = document.getElementById('note-editor').innerHTML; salvarDados(); }
 }
 
-function acceptMission(idx) {
-    const m = missoesDoDia[idx];
-    addTaskToUI(m.t, 'todo-list', true);
-    missoesDoDia.splice(idx, 1);
-    closeMissionModal();
+function deleteNote(id) {
+    if (notas.length === 1) return;
+    notas = notas.filter(n => n.id !== id);
+    if (notaAtivaId === id) notaAtivaId = notas[0].id;
+    switchNote(notaAtivaId);
 }
 
-function closeMissionModal() { document.getElementById('mission-modal').style.display = 'none'; }
-
-// --- TAREFAS E PROVAS ---
-function addTask() {
-    const inp = document.getElementById('task-in');
-    if (inp.value.trim()) { addTaskToUI(inp.value, 'todo-list', false); inp.value = ""; }
-}
-
-function addExam() {
-    const inp = document.getElementById('exam-in');
-    if (inp.value.trim()) {
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${inp.value}</span> <button onclick="this.parentElement.remove(); salvarDados();" style="color:red; background:none; border:none; cursor:pointer">❌</button>`;
-        document.getElementById('exam-list').appendChild(li);
-        inp.value = "";
-        salvarDados();
-    }
-}
-
-function addTaskToUI(txt, listId, isFromPool) {
-    const li = document.createElement('li');
-    li.innerHTML = `<span>${txt}</span>
-        <div>
-            ${listId === 'todo-list' ? `<button onclick="finishTask(this, '${txt}', ${isFromPool})" style="color:green; background:none; border:none; cursor:pointer; font-size:20px">✔️</button>` : ''}
-            <button onclick="this.parentElement.parentElement.remove(); salvarDados();" style="color:red; background:none; border:none; cursor:pointer; font-size:18px">❌</button>
-        </div>`;
-    document.getElementById(listId).appendChild(li);
-    salvarDados();
-}
-
-function finishTask(btn, txt, isFromPool) {
-    btn.parentElement.parentElement.remove();
-    addTaskToUI(txt, 'done-list', false);
-    addXP(50);
-    goldCount += 10;
-    if (isFromPool) missoesConcluidasHoje++;
-    memorials.push({n: txt, d: new Date().toLocaleDateString()});
-    updateUI();
-}
-
-// --- FOTO ---
+// --- FOTO DE PERFIL (CROPPER) ---
 function loadPhoto(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
-        document.getElementById('image-to-crop').src = e.target.result;
+        const img = document.getElementById('image-to-crop');
+        img.src = e.target.result;
         document.getElementById('cropper-modal').style.display = 'flex';
         if (cropper) cropper.destroy();
-        cropper = new Cropper(document.getElementById('image-to-crop'), { aspectRatio: 1, viewMode: 1 });
+        cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1 });
     };
     if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
 }
@@ -164,11 +81,111 @@ function closeCropper() {
     salvarDados();
 }
 
+// --- MISSÕES E RPG ---
+function openMissionModal() {
+    const box = document.getElementById('missions-pool'); box.innerHTML = "";
+    if (missoesConcluidasHoje >= 3) { box.innerHTML = "<p>Missões concluídas por hoje!</p>"; }
+    else {
+        missoesDoDia.forEach((m, i) => {
+            const d = document.createElement('div'); d.style = "border:1px solid #333; padding:10px; margin-bottom:10px;";
+            d.innerHTML = `<strong>⚔️ ${m.t}</strong><p style="font-size:12px">${m.d}</p>
+                           <button onclick="acceptMission(${i})" class="btn-sidebar-custom" style="padding:5px">ACEITAR</button>`;
+            box.appendChild(d);
+        });
+    }
+    document.getElementById('mission-modal').style.display = 'flex';
+}
+
+function acceptMission(idx) {
+    addTaskToUI(missoesDoDia[idx].t, 'todo-list', true);
+    missoesDoDia.splice(idx, 1);
+    closeMissionModal();
+}
+
+function finishTask(btn, txt, isFromPool) {
+    btn.parentElement.parentElement.remove();
+    addTaskToUI(txt, 'done-list', false);
+    addXP(50); goldCount += 10;
+    if(isFromPool) missoesConcluidasHoje++;
+    memorials.push({n: txt, d: new Date().toLocaleDateString()});
+    updateUI();
+}
+
+// --- UTILITÁRIOS ---
+function addXP(v) { 
+    xpAtual += v; 
+    while(xpAtual >= xpNecessario) { xpAtual -= xpNecessario; nivel++; xpNecessario = Math.floor(100 * Math.pow(1.18, nivel-1)); alert("LEVEL UP!"); } 
+    updateUI(); 
+}
+
+function updateUI() {
+    document.getElementById('xp-fill').style.width = (xpAtual/xpNecessario)*100 + "%";
+    document.getElementById('xp-text').innerText = `${xpAtual}/${xpNecessario} XP`;
+    document.getElementById('lvl-current').innerText = nivel;
+    document.getElementById('gold-count').innerText = goldCount;
+    salvarDados();
+}
+
+function addTask() {
+    const i = document.getElementById('task-in');
+    if(i.value) { addTaskToUI(i.value, 'todo-list', false); i.value=""; }
+}
+
+function addExam() {
+    const i = document.getElementById('exam-in');
+    if(i.value) {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${i.value}</span><button onclick="this.parentElement.remove();salvarDados();">❌</button>`;
+        document.getElementById('exam-list').appendChild(li); i.value=""; salvarDados();
+    }
+}
+
+function addTaskToUI(txt, listId, isFromPool) {
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${txt}</span><div>
+        ${listId === 'todo-list' ? `<button onclick="finishTask(this,'${txt}',${isFromPool})" style="color:green;background:none;border:none;cursor:pointer">✔️</button>` : ''}
+        <button onclick="this.parentElement.parentElement.remove();salvarDados();" style="color:red;background:none;border:none;cursor:pointer">❌</button></div>`;
+    document.getElementById(listId).appendChild(li); salvarDados();
+}
+
 function openHistoryModal() {
-    const cont = document.getElementById('history-content');
-    cont.innerHTML = memorials.map(m => `<li style="border-bottom:1px solid #333; padding:5px;">${m.n} (${m.d})</li>`).join("") || "Sem memórias.";
+    const c = document.getElementById('history-content');
+    c.innerHTML = memorials.map(m => `<li>${m.n} (${m.d})</li>`).join("") || "Vazio";
     document.getElementById('history-modal').style.display = 'flex';
 }
-function closeHistoryModal() { document.getElementById('history-modal').style.display = 'none'; }
+
+function closeMissionModal() { document.getElementById('mission-modal').style.display='none'; }
+function closeHistoryModal() { document.getElementById('history-modal').style.display='none'; }
+
+function salvarDados() {
+    const data = {
+        nivel, xpAtual, xpNecessario, goldCount, memorials, missoesConcluidasHoje, notas, notaAtivaId,
+        nome: document.getElementById('user-name').innerText,
+        titulo: document.getElementById('main-title-text').innerText,
+        exam: document.getElementById('exam-list').innerHTML,
+        todo: document.getElementById('todo-list').innerHTML,
+        done: document.getElementById('done-list').innerHTML,
+        foto: document.getElementById('profile-img').src
+    };
+    localStorage.setItem('grimorio_master_save', JSON.stringify(data));
+}
+
+function carregarDados() {
+    const s = localStorage.getItem('grimorio_master_save');
+    if(s) {
+        const d = JSON.parse(s);
+        nivel = d.nivel; xpAtual = d.xpAtual; xpNecessario = d.xpNecessario; goldCount = d.goldCount;
+        memorials = d.memorials || []; missoesConcluidasHoje = d.missoesConcluidasHoje || 0;
+        notas = d.notas || notas; notaAtivaId = d.notaAtivaId || notas[0].id;
+        document.getElementById('user-name').innerText = d.nome;
+        document.getElementById('main-title-text').innerText = d.titulo;
+        document.getElementById('exam-list').innerHTML = d.exam;
+        document.getElementById('todo-list').innerHTML = d.todo;
+        document.getElementById('done-list').innerHTML = d.done;
+        document.getElementById('profile-img').src = d.foto;
+        switchNote(notaAtivaId);
+        updateUI();
+    } else { renderTabs(); }
+}
 
 window.onload = carregarDados;

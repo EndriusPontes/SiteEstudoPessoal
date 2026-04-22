@@ -120,7 +120,28 @@ setInterval(checkExams, 60000);
 // --- RPG E SISTEMAS GERAIS ---
 function addXP(v) { 
     xpAtual += v; 
-    while(xpAtual >= xpNecessario) { xpAtual -= xpNecessario; nivel++; xpNecessario = Math.floor(100 * Math.pow(1.18, nivel-1)); alert("LEVEL UP!"); } 
+
+    let levelUp = false;
+
+    while(xpAtual >= xpNecessario) { 
+        xpAtual -= xpNecessario; 
+        nivel++; 
+        xpNecessario = Math.floor(100 * Math.pow(1.18, nivel-1)); 
+        levelUp = true;
+    }
+
+    if(levelUp) {
+        document.querySelector('.profile-highlight-box')
+            .classList.add("level-up-effect");
+
+        spawnFloat("LEVEL UP!", window.innerWidth / 2, 100);
+
+        setTimeout(() => {
+            document.querySelector('.profile-highlight-box')
+                .classList.remove("level-up-effect");
+        }, 1000);
+    }
+
     updateUI(); 
 }
 
@@ -146,11 +167,28 @@ function addTaskToUI(txt, listId, isFromPool) {
 }
 
 function finishTask(btn, txt, isFromPool) {
-    btn.parentElement.parentElement.remove();
-    addTaskToUI(txt, 'done-list', false);
-    addXP(50); goldCount += 10;
+    const rect = btn.getBoundingClientRect();
+
+    // animação visual
+    btn.parentElement.parentElement.classList.add("task-done-anim");
+
+    setTimeout(() => {
+        btn.parentElement.parentElement.remove();
+        addTaskToUI(txt, 'done-list', false);
+    }, 300);
+
+    // efeitos visuais XP / GOLD
+    spawnFloat("+50 XP", rect.left, rect.top);
+    spawnFloat("+10 GOLD", rect.left, rect.top + 20, "gold-float");
+
+    // lógica
+    addXP(50);
+    goldCount += 10;
+
     if(isFromPool) missoesConcluidasHoje++;
+
     memorials.push({n: txt, d: new Date().toLocaleDateString()});
+
     updateUI();
 }
 
@@ -221,3 +259,16 @@ function closeMissionModal() { document.getElementById('mission-modal').style.di
 function closeHistoryModal() { document.getElementById('history-modal').style.display='none'; }
 
 window.onload = carregarDados;
+
+function spawnFloat(text, x, y, className="xp-float") {
+    const el = document.createElement("div");
+    el.className = className;
+    el.innerText = text;
+
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+
+    document.body.appendChild(el);
+
+    setTimeout(() => el.remove(), 1000);
+}

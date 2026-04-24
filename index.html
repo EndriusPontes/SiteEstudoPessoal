@@ -47,6 +47,8 @@
             <header class="board-header">
                 <div class="mission-trigger-area">
                     <button class="btn-sidebar-custom mission-btn" onclick="openMissionModal()">⚔️ MISSÕES DISPONÍVEIS</button>
+
+                    <button class="btn-sidebar-custom" onclick="abrirSistemaNotas()">🧠 SISTEMA DE NOTAS</button>
                 </div>
                 <h2 contenteditable="true" id="main-title-text" oninput="salvarDados()" class="main-title">PAINEL DE CONTROLE ✎</h2>
             </header>
@@ -106,6 +108,8 @@
         </div>
     </div>
 
+    
+
     <div id="history-modal" class="modal-overlay">
         <div class="modal-card">
             <h3>📜 MEMORIAIS DE GUERRA</h3>
@@ -114,6 +118,32 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+<div class="grade-system">
+
+  <h3>Sistema de Notas</h3>
+
+  <select id="tipo-periodo">
+    <option value="4">Bimestre (4)</option>
+    <option value="3">Trimestre (3)</option>
+  </select>
+
+  <input type="number" id="nota1" placeholder="Nota 1">
+  <input type="number" id="nota2" placeholder="Nota 2">
+  <input type="number" id="nota3" placeholder="Nota 3">
+
+  <input type="number" id="media-minima" placeholder="Média para passar (ex: 6)">
+
+  <button onclick="calcularNotas()">Calcular</button>
+
+  <div id="resultado"></div>
+
+</div>
+
+    <script src="sistemageral.js"></script>
+    <script src="missaoXP.js"></script>
+    <script src="notas.js"></script>
+    <script src="perfil.js"></script>
+    <script src="bloconotas.js"></script>
+    <script src="alertas.js"></script> 
 </body>
 </html>

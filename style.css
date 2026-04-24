@@ -121,3 +121,9 @@ body { background: var(--bg-dark); color: var(--text-main); font-family: 'Segoe 
   background: #444;
   border-radius: 4px;
 }
+
+.mission-trigger-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
